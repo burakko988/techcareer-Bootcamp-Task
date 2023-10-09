@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product List</title>
+    
+</head>
+
+<body>
+    <div class="container" style="display:flex;">
+
+        <div>
+            <button id="getData">Fetch Data</button>
+            <table id="productTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Unit Price</th>
+                    <th>Stock</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+    </div>
+    <div >
+        <label for="priceFilter">Select Price Range:</label>
+        <select id="priceFilter">
+            <option value="All">All</option>
+            <option value="100">0-100</option>
+            <option value="200">0-200</option>
+            <option value="300">0-300</option>
+            <option value="400">0-400</option>
+            <option value="500">0-500</option>
+        </select>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        const getDataB = document.getElementById('getData');
+        const productTable = document.getElementById('productTable');
+        const priceFilter = document.getElementById('priceFilter');
+
+        async function getData() {
+                const response = await axios.get('https://northwind.vercel.app/api/products')
+                const products = response.data;
+                const selectedPrice = parseFloat(priceFilter.value);
+
+                // When the new data fetched delete old datas.
+                while (productTable.rows.length > 1) {
+                    productTable.deleteRow(1);
+                }
+                products.forEach(product => {
+                    if (priceFilter.value === 'All' || parseFloat(product.unitPrice) <= selectedPrice) {
+                        const row = productTable.insertRow();
+                        row.insertCell(0).textContent = product.id;
+                        row.insertCell(1).textContent = product.name;
+                        row.insertCell(2).textContent = product.unitPrice;
+                        row.insertCell(3).textContent = product.unitsInStock;
+
+                        const deleteButtonCell = row.insertCell(4);
+
+                        const deleteButton = document.createElement('button');
+
+                        deleteButton.textContent = 'Delete';
+
+                        deleteButton.addEventListener('click', async () => {
+                                await axios.delete(`https://northwind.now.sh/api/products/${product.id}`);
+                                alert(`Product with ID ${product.id} deleted successfully.`);
+                                // Remove the row from the table
+                                productTable.deleteRow(row.rowIndex);
+                        });
+
+                        deleteButtonCell.appendChild(deleteButton);
+                    }
+                });
+        }
+
+        priceFilter.addEventListener('change', getData);
+
+        getDataB.addEventListener('click', getData);
+    </script>
+</body>
+
+</html>
